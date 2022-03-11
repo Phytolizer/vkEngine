@@ -24,3 +24,4 @@ find_package(Vulkan REQUIRED)
 
 add_executable(hello source/hello.c)
 target_link_libraries(hello PRIVATE glfw Vulkan::Vulkan)
+target_compile_definitions(hello PRIVATE GLFW_INCLUDE_VULKAN)
