@@ -1,4 +1,5 @@
 #include <GLFW/glfw3.h>
+#include <cglm/cglm.h>
 #include <inttypes.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -14,6 +15,11 @@ int main(void) {
 
     uint32_t extension_count = 0;
     vkEnumerateInstanceExtensionProperties(NULL, &extension_count, NULL);
+
+    mat4 matrix = {0};
+    vec4 vec = {0};
+    vec4 test;
+    glm_mat4_mulv(matrix, vec, test);
 
     printf("%" PRIu32 " extensions supported\n", extension_count);
 
