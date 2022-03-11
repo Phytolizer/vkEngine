@@ -1,4 +1,1 @@
-*.make
-Makefile
-bin/
-obj/
+build/
