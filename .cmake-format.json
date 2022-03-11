@@ -5,12 +5,10 @@
             "Specify structure for custom cmake functions"
         ],
         "additional_commands": {
-            "foo": {
-                "flags": ["BAR", "BAZ"],
+            "shader_target": {
                 "kwargs": {
-                    "HEADERS": "*",
-                    "SOURCES": "*",
-                    "DEPENDS": "*"
+                    "VERTEX_SHADER": 1,
+                    "FRAGMENT_SHADER": 1
                 }
             }
         },

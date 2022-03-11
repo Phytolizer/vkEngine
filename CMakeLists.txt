@@ -30,7 +30,54 @@ FetchContent_MakeAvailable(cglm)
 
 find_package(Vulkan REQUIRED)
 
+function(shader_target NAME)
+    cmake_parse_arguments(
+        PARSE_ARGV 0 "SHADER_TARGET" "" "VERTEX_SHADER;FRAGMENT_SHADER" ""
+    )
+    string(APPEND SHADER_TARGET_VERTEX_SPIRV "${SHADER_TARGET_VERTEX_SHADER}"
+           ".spv"
+    )
+    string(REPLACE "${PROJECT_SOURCE_DIR}/" "" SHADER_TARGET_VERTEX_SPIRV
+                   "${SHADER_TARGET_VERTEX_SPIRV}"
+    )
+    cmake_path(
+        REMOVE_FILENAME SHADER_TARGET_VERTEX_SPIRV OUTPUT_VARIABLE
+        SHADER_TARGET_VERTEX_BASE_FOLDER
+    )
+    string(APPEND SHADER_TARGET_FRAGMENT_SPIRV
+           "${SHADER_TARGET_FRAGMENT_SHADER}" ".spv"
+    )
+    string(REPLACE "${PROJECT_SOURCE_DIR}/" "" SHADER_TARGET_FRAGMENT_SPIRV
+                   "${SHADER_TARGET_FRAGMENT_SPIRV}"
+    )
+    cmake_path(
+        REMOVE_FILENAME SHADER_TARGET_FRAGMENT_SPIRV OUTPUT_VARIABLE
+        SHADER_TARGET_FRAGMENT_BASE_FOLDER
+    )
+    add_custom_target(
+        "${NAME}"
+        DEPENDS "${SHADER_TARGET_VERTEX_SHADER}"
+                "${SHADER_TARGET_FRAGMENT_SHADER}"
+        COMMAND "${CMAKE_COMMAND}" -E make_directory
+                "${SHADER_TARGET_VERTEX_BASE_FOLDER}"
+        COMMAND "${Vulkan_GLSLC_EXECUTABLE}" -o "${SHADER_TARGET_VERTEX_SPIRV}"
+                "${SHADER_TARGET_VERTEX_SHADER}"
+        COMMAND "${CMAKE_COMMAND}" -E make_directory
+                "${SHADER_TARGET_FRAGMENT_BASE_FOLDER}"
+        COMMAND
+            "${Vulkan_GLSLC_EXECUTABLE}" -o "${SHADER_TARGET_FRAGMENT_SPIRV}"
+            "${SHADER_TARGET_FRAGMENT_SHADER}"
+    )
+endfunction()
+
+shader_target(
+    simple_shader
+    VERTEX_SHADER "${PROJECT_SOURCE_DIR}/resources/shaders/simple_shader.vert"
+    FRAGMENT_SHADER "${PROJECT_SOURCE_DIR}/resources/shaders/simple_shader.frag"
+)
+
 add_executable(first_app source/main.c source/first_app.c source/window.c)
 target_link_libraries(first_app PRIVATE glfw Vulkan::Vulkan cglm)
 target_compile_definitions(first_app PRIVATE GLFW_INCLUDE_VULKAN)
 target_include_directories(first_app PRIVATE include)
+add_dependencies(first_app simple_shader)
