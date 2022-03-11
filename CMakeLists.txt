@@ -30,6 +30,7 @@ FetchContent_MakeAvailable(cglm)
 
 find_package(Vulkan REQUIRED)
 
-add_executable(hello source/hello.c)
-target_link_libraries(hello PRIVATE glfw Vulkan::Vulkan cglm)
-target_compile_definitions(hello PRIVATE GLFW_INCLUDE_VULKAN)
+add_executable(first_app source/main.c source/first_app.c source/window.c)
+target_link_libraries(first_app PRIVATE glfw Vulkan::Vulkan cglm)
+target_compile_definitions(first_app PRIVATE GLFW_INCLUDE_VULKAN)
+target_include_directories(first_app PRIVATE include)
