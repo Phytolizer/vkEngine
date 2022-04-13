@@ -28,6 +28,8 @@ struct HtaPrivate {
 	VkInstance instance;
 	VkDebugUtilsMessengerEXT debugMessenger;
 	VkPhysicalDevice physicalDevice;
+	VkDevice device;
+	VkQueue graphicsQueue;
 };
 
 typedef SPAN_TYPE(const char*) StringSpan;
@@ -311,6 +313,41 @@ static const char* pickPhysicalDevice(HelloTriangleApplication* app) {
 
 	return NULL;
 }
+static const char* createLogicalDevice(HelloTriangleApplication* app) {
+	QueueFamilyIndices indices = findQueueFamilies(app->private->physicalDevice);
+
+	VkDeviceQueueCreateInfo queueCreateInfo = {0};
+	queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+	queueCreateInfo.queueFamilyIndex = indices.graphicsFamily.value;
+	queueCreateInfo.queueCount = 1;
+	float queuePriority = 1.0F;
+	queueCreateInfo.pQueuePriorities = &queuePriority;
+
+	VkPhysicalDeviceFeatures deviceFeatures = {0};
+
+	VkDeviceCreateInfo createInfo = {0};
+	createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
+	createInfo.queueCreateInfoCount = 1;
+	createInfo.pQueueCreateInfos = &queueCreateInfo;
+	createInfo.pEnabledFeatures = &deviceFeatures;
+	createInfo.enabledExtensionCount = 0;
+	if (ENABLE_VALIDATION_LAYERS) {
+		createInfo.enabledLayerCount = sizeof(VALIDATION_LAYERS) / sizeof(VALIDATION_LAYERS[0]);
+		createInfo.ppEnabledLayerNames = VALIDATION_LAYERS;
+	} else {
+		createInfo.enabledLayerCount = 0;
+	}
+
+	if (vkCreateDevice(app->private->physicalDevice, &createInfo, NULL, &app->private->device) !=
+			VK_SUCCESS) {
+		return "Failed to create logical device!";
+	}
+
+	vkGetDeviceQueue(
+			app->private->device, indices.graphicsFamily.value, 0, &app->private->graphicsQueue);
+
+	return NULL;
+}
 static const char* initVulkan(HelloTriangleApplication* app) {
 	const char* error = createInstance(app);
 	if (error != NULL) {
@@ -320,7 +357,11 @@ static const char* initVulkan(HelloTriangleApplication* app) {
 	if (error != NULL) {
 		return error;
 	}
-	return pickPhysicalDevice(app);
+	error = pickPhysicalDevice(app);
+	if (error != NULL) {
+		return error;
+	}
+	return createLogicalDevice(app);
 }
 static void mainLoop(HelloTriangleApplication* app) {
 	while (!glfwWindowShouldClose(app->private->window)) {
@@ -328,6 +369,7 @@ static void mainLoop(HelloTriangleApplication* app) {
 	}
 }
 static void cleanup(HelloTriangleApplication* app) {
+	vkDestroyDevice(app->private->device, NULL);
 	if (ENABLE_VALIDATION_LAYERS) {
 		destroyDebugUtilsMessengerEXT(app->private->instance, app->private->debugMessenger, NULL);
 	}
