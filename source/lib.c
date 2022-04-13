@@ -106,6 +106,17 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
 	printf("validation layer: %s\n", pCallbackData->pMessage);
 	return VK_FALSE;
 }
+static void populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo) {
+	*pCreateInfo = (VkDebugUtilsMessengerCreateInfoEXT){0};
+	pCreateInfo->sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
+	pCreateInfo->messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT |
+			VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT |
+			VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
+	pCreateInfo->messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT |
+			VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT |
+			VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
+	pCreateInfo->pfnUserCallback = debugCallback;
+}
 static const char* createInstance(HelloTriangleApplication* app) {
 	if (ENABLE_VALIDATION_LAYERS && !checkValidationLayerSupport()) {
 		return "Validation layers requested, but not available!";
@@ -127,11 +138,17 @@ static const char* createInstance(HelloTriangleApplication* app) {
 
 	createInfo.enabledExtensionCount = (uint32_t)extensions.length;
 	createInfo.ppEnabledExtensionNames = extensions.begin;
+
+	VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo = {0};
 	if (ENABLE_VALIDATION_LAYERS) {
 		createInfo.enabledLayerCount = sizeof(VALIDATION_LAYERS) / sizeof(VALIDATION_LAYERS[0]);
 		createInfo.ppEnabledLayerNames = VALIDATION_LAYERS;
+		populateDebugMessengerCreateInfo(&debugCreateInfo);
+		createInfo.pNext = &debugCreateInfo;
 	} else {
 		createInfo.enabledLayerCount = 0;
+
+		createInfo.pNext = NULL;
 	}
 
 	if (vkCreateInstance(&createInfo, NULL, &app->private->instance) != VK_SUCCESS) {
@@ -182,16 +199,8 @@ static const char* setupDebugMessenger(HelloTriangleApplication* app) {
 		return NULL;
 	}
 
-	VkDebugUtilsMessengerCreateInfoEXT createInfo = {0};
-	createInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
-	createInfo.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT |
-			VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT |
-			VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
-	createInfo.messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT |
-			VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT |
-			VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
-	createInfo.pfnUserCallback = debugCallback;
-	createInfo.pUserData = NULL;
+	VkDebugUtilsMessengerCreateInfoEXT createInfo;
+	populateDebugMessengerCreateInfo(&createInfo);
 
 	if (createDebugUtilsMessengerEXT(
 				app->private->instance, &createInfo, NULL, &app->private->debugMessenger)) {
