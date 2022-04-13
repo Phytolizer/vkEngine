@@ -11,12 +11,8 @@ include(Catch)
 
 # ---- Tests ----
 
-add_executable(vkEngine_test source/vkEngine_test.cpp)
-target_link_libraries(
-    vkEngine_test PRIVATE
-    vkEngine_lib
-    Catch2::Catch2WithMain
-)
+add_executable(vkEngine_test source/catch_main.cpp source/vkEngine_test.cpp)
+target_link_libraries(vkEngine_test PRIVATE vkEngine_lib Catch2::Catch2)
 target_compile_features(vkEngine_test PRIVATE cxx_std_11)
 
 catch_discover_tests(vkEngine_test)
