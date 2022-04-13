@@ -3,14 +3,14 @@ name: Continuous Integration
 on:
   push:
     branches:
-    - master
+    - reset
 
   pull_request:
     branches:
-    - master
+    - reset
 
 env:
-  VCPKG_COMMIT: 5cf60186a241e84e8232641ee973395d4fde90e1
+  VCPKG_COMMIT: e809a42f87565e803b2178a0c11263f462d1800a
 
 jobs:
   lint:
@@ -53,7 +53,8 @@ jobs:
 
     - name: Install vcpkg
       uses: friendlyanon/setup-vcpkg@v1
-      with: { committish: ${{ env.VCPKG_COMMIT }} }
+      with:
+        committish: ${{ env.VCPKG_COMMIT }}
 
     - name: Configure
       run: cmake --preset=ci-coverage
@@ -83,7 +84,8 @@ jobs:
 
     - name: Install vcpkg
       uses: friendlyanon/setup-vcpkg@v1
-      with: { committish: ${{ env.VCPKG_COMMIT }} }
+      with:
+        committish: ${{ env.VCPKG_COMMIT }}
 
     - name: Configure
       env: { CC: clang-12, CXX: clang++-12 }
@@ -121,7 +123,8 @@ jobs:
 
     - name: Install vcpkg
       uses: friendlyanon/setup-vcpkg@v1
-      with: { committish: ${{ env.VCPKG_COMMIT }} }
+      with:
+        committish: ${{ env.VCPKG_COMMIT }}
 
     - name: Configure
       shell: pwsh
