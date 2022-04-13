@@ -3,6 +3,8 @@ Checks: |
     readability-identifier-naming,
     clang-analyzer-*,
     bugprone-*,
+    -bugprone-macro-parentheses,
+    -bugprone-easily-swappable-parameters,
     google-*,
 CheckOptions:
     - key: readability-identifier-naming.ClassCase

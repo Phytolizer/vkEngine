@@ -1,18 +1,13 @@
 #pragma once
 
-/**
- * @brief Simply initializes the name member to the name of the project
- */
+#include <stdbool.h>
+
+typedef struct HtaPrivate HtaPrivate;
+
 typedef struct {
-	const char* name;
-} Library;
+	HtaPrivate* private;
+} HelloTriangleApplication;
 
-/**
- * @brief Creates an instance of library with the name of the project
- */
-Library CreateLibrary(void);
-
-/**
- * @brief Destroys resources held by the library
- */
-void DestroyLibrary(Library* lib);
+HelloTriangleApplication HtaNew(void);
+const char* HtaRun(HelloTriangleApplication* app);
+void HtaFree(HelloTriangleApplication* app);

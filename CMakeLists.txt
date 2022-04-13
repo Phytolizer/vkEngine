@@ -35,6 +35,7 @@ if(NOT HEDLEY_INCLUDE_DIR)
 	message(FATAL_ERROR "Couldn't find hedley.h (${HEDLEY_INCLUDE_DIR})")
 endif()
 target_include_directories(vkEngine_lib SYSTEM PRIVATE "${HEDLEY_INCLUDE_DIR}")
+target_compile_definitions(vkEngine_lib PUBLIC GLFW_INCLUDE_VULKAN)
 
 # ---- Declare executable ----
 
@@ -46,7 +47,6 @@ set_target_properties(
 )
 
 target_compile_features(vkEngine_exe PRIVATE c_std_11)
-target_compile_definitions(vkEngine_exe PRIVATE GLFW_INCLUDE_VULKAN)
 
 target_link_libraries(vkEngine_exe PRIVATE vkEngine_lib)
 
