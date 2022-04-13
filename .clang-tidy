@@ -2,6 +2,7 @@ Checks: |
     -*,
     readability-identifier-naming,
     clang-analyzer-*,
+    -clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling,
     bugprone-*,
     -bugprone-macro-parentheses,
     -bugprone-easily-swappable-parameters,

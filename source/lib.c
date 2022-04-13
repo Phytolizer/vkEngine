@@ -1,6 +1,7 @@
 #include "lib.h"
 
 #include "buffer.h"
+#include "maybe.h"
 #include "span.h"
 
 #include <GLFW/glfw3.h>
@@ -31,6 +32,15 @@ struct HtaPrivate {
 
 typedef SPAN_TYPE(const char*) StringSpan;
 typedef BUFFER_TYPE(const char*) StringBuffer;
+typedef MAYBE_TYPE(uint32_t) MaybeUint32;
+
+typedef struct {
+	MaybeUint32 graphicsFamily;
+} QueueFamilyIndices;
+
+static bool queueFamilyIndicesIsComplete(QueueFamilyIndices indices) {
+	return indices.graphicsFamily.present;
+}
 
 static void initWindow(HelloTriangleApplication* app) {
 	(void)app;
@@ -210,6 +220,34 @@ static const char* setupDebugMessenger(HelloTriangleApplication* app) {
 
 	return NULL;
 }
+static QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device) {
+	QueueFamilyIndices indices = {0};
+
+	uint32_t queueFamilyCount = 0;
+	vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, NULL);
+
+	VkQueueFamilyProperties* queueFamilies =
+			malloc(sizeof(VkQueueFamilyProperties) * queueFamilyCount);
+	vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, queueFamilies);
+
+	uint32_t i = 0;
+	for (size_t j = 0; j < queueFamilyCount; j++) {
+		VkQueueFamilyProperties queueFamily = queueFamilies[j];
+		if (queueFamily.queueFlags & VK_QUEUE_GRAPHICS_BIT) {
+			indices.graphicsFamily = (MaybeUint32)MAYBE_SOME(i);
+		}
+
+		if (queueFamilyIndicesIsComplete(indices)) {
+			break;
+		}
+
+		i++;
+	}
+
+	free(queueFamilies);
+
+	return indices;
+}
 static uint32_t rateDeviceSuitability(VkPhysicalDevice device) {
 	VkPhysicalDeviceProperties deviceProperties;
 	vkGetPhysicalDeviceProperties(device, &deviceProperties);
@@ -228,7 +266,18 @@ static uint32_t rateDeviceSuitability(VkPhysicalDevice device) {
 		return 0;
 	}
 
+	QueueFamilyIndices indices = findQueueFamilies(device);
+	if (!queueFamilyIndicesIsComplete(indices)) {
+		return 0;
+	}
+
 	return score;
+}
+static void displayDeviceName(VkPhysicalDevice device) {
+	VkPhysicalDeviceProperties deviceProperties;
+	vkGetPhysicalDeviceProperties(device, &deviceProperties);
+
+	printf("Selected physical device: %s\n", deviceProperties.deviceName);
 }
 static const char* pickPhysicalDevice(HelloTriangleApplication* app) {
 	uint32_t deviceCount = 0;
@@ -255,6 +304,7 @@ static const char* pickPhysicalDevice(HelloTriangleApplication* app) {
 
 	if (bestScore > 0) {
 		app->private->physicalDevice = bestDevice;
+		displayDeviceName(bestDevice);
 	} else {
 		return "Failed to find a suitable GPU!";
 	}
@@ -284,6 +334,12 @@ static void cleanup(HelloTriangleApplication* app) {
 	vkDestroyInstance(app->private->instance, NULL);
 	glfwDestroyWindow(app->private->window);
 	glfwTerminate();
+}
+
+void* MemDup(void* mem, size_t size) {
+	void* newMem = malloc(size);
+	memcpy(newMem, mem, size);
+	return newMem;
 }
 
 HelloTriangleApplication HtaNew(void) {
