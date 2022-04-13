@@ -1,17 +1,14 @@
+#include <catch2/catch.hpp>
 #include <memory>
 #include <string>
-
-#include <catch2/catch.hpp>
 
 extern "C" {
 #include "lib.h"
 }
 
-TEST_CASE("Name is vkEngine", "[library]")
-{
-  library lib = create_library();
-  auto ptr =
-      std::unique_ptr<library, void(*)(library*)>(&lib, &destroy_library);
+TEST_CASE("Name is vkEngine", "[library]") {
+	Library lib = CreateLibrary();
+	auto ptr = std::unique_ptr<Library, void (*)(Library*)>(&lib, &DestroyLibrary);
 
-  REQUIRE(std::string("vkEngine") == lib.name);
+	REQUIRE(std::string("vkEngine") == lib.name);
 }

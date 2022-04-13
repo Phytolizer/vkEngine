@@ -28,7 +28,7 @@ find_package(glfw3 REQUIRED)
 find_package(Vulkan REQUIRED)
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(blas REQUIRED IMPORTED_TARGET openblas)
-target_link_libraries(vkEngine_lib PRIVATE glfw Vulkan::Vulkan PkgConfig::blas)
+target_link_libraries(vkEngine_lib PUBLIC glfw Vulkan::Vulkan PkgConfig::blas)
 
 find_path(HEDLEY_INCLUDE_DIR hedley.h)
 if(NOT HEDLEY_INCLUDE_DIR)
@@ -46,6 +46,7 @@ set_target_properties(
 )
 
 target_compile_features(vkEngine_exe PRIVATE c_std_11)
+target_compile_definitions(vkEngine_exe PRIVATE GLFW_INCLUDE_VULKAN)
 
 target_link_libraries(vkEngine_exe PRIVATE vkEngine_lib)
 

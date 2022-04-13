@@ -3,16 +3,16 @@
 /**
  * @brief Simply initializes the name member to the name of the project
  */
-struct library {
+typedef struct {
 	const char* name;
-};
+} Library;
 
 /**
  * @brief Creates an instance of library with the name of the project
  */
-struct library create_library(void);
+Library CreateLibrary(void);
 
 /**
  * @brief Destroys resources held by the library
  */
-void destroy_library(struct library* lib);
+void DestroyLibrary(Library* lib);
