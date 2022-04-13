@@ -26,6 +26,7 @@ struct HtaPrivate {
 	GLFWwindow* window;
 	VkInstance instance;
 	VkDebugUtilsMessengerEXT debugMessenger;
+	VkPhysicalDevice physicalDevice;
 };
 
 typedef SPAN_TYPE(const char*) StringSpan;
@@ -209,12 +210,67 @@ static const char* setupDebugMessenger(HelloTriangleApplication* app) {
 
 	return NULL;
 }
+static uint32_t rateDeviceSuitability(VkPhysicalDevice device) {
+	VkPhysicalDeviceProperties deviceProperties;
+	vkGetPhysicalDeviceProperties(device, &deviceProperties);
+	VkPhysicalDeviceFeatures deviceFeatures;
+	vkGetPhysicalDeviceFeatures(device, &deviceFeatures);
+
+	uint32_t score = 0;
+
+	if (deviceProperties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU) {
+		score += 1000;
+	}
+
+	score += deviceProperties.limits.maxImageDimension2D;
+
+	if (!deviceFeatures.geometryShader) {
+		return 0;
+	}
+
+	return score;
+}
+static const char* pickPhysicalDevice(HelloTriangleApplication* app) {
+	uint32_t deviceCount = 0;
+	vkEnumeratePhysicalDevices(app->private->instance, &deviceCount, NULL);
+
+	if (deviceCount == 0) {
+		return "Failed to find GPUs with Vulkan support!";
+	}
+
+	VkPhysicalDevice* devices = malloc(sizeof(VkPhysicalDevice) * deviceCount);
+	vkEnumeratePhysicalDevices(app->private->instance, &deviceCount, devices);
+
+	uint32_t bestScore = 0;
+	VkPhysicalDevice bestDevice = VK_NULL_HANDLE;
+	for (uint32_t i = 0; i < deviceCount; i++) {
+		uint32_t score = rateDeviceSuitability(devices[i]);
+		if (score > bestScore) {
+			bestScore = score;
+			bestDevice = devices[i];
+		}
+	}
+
+	free(devices);
+
+	if (bestScore > 0) {
+		app->private->physicalDevice = bestDevice;
+	} else {
+		return "Failed to find a suitable GPU!";
+	}
+
+	return NULL;
+}
 static const char* initVulkan(HelloTriangleApplication* app) {
 	const char* error = createInstance(app);
 	if (error != NULL) {
 		return error;
 	}
-	return setupDebugMessenger(app);
+	error = setupDebugMessenger(app);
+	if (error != NULL) {
+		return error;
+	}
+	return pickPhysicalDevice(app);
 }
 static void mainLoop(HelloTriangleApplication* app) {
 	while (!glfwWindowShouldClose(app->private->window)) {
@@ -233,6 +289,7 @@ static void cleanup(HelloTriangleApplication* app) {
 HelloTriangleApplication HtaNew(void) {
 	HelloTriangleApplication app;
 	app.private = malloc(sizeof(struct HtaPrivate));
+	app.private->physicalDevice = VK_NULL_HANDLE;
 	return app;
 }
 
